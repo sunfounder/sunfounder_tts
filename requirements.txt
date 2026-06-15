@@ -1,0 +1,5 @@
+# sunfounder_tts
+edge-tts>=6.0
+numpy>=1.24
+requests>=2.25
+pyaudio>=0.2

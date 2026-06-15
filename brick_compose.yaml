@@ -1,0 +1,6 @@
+services:
+  sunfounder_tts:
+    build:
+      context: ../..
+      dockerfile: python-libraries/sunfounder_tts/Dockerfile
+    image: sunfounder_tts:latest
