@@ -18,6 +18,8 @@ PA_SAMPLE_S16LE = 3
 
 
 class _SampleSpec(ctypes.Structure):
+    """Ctypes mirror of PulseAudio ``pa_sample_spec`` — format, rate, channels."""
+
     _fields_ = [
         ("format", ctypes.c_int),
         ("rate", ctypes.c_uint32),
@@ -26,6 +28,11 @@ class _SampleSpec(ctypes.Structure):
 
 
 def _setup_signatures():
+    """Configure libpulse-simple ctypes argument and return types.
+
+    Returns:
+        None
+    """
     lib = _LIB
     lib.pa_simple_new.argtypes = [
         ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int,

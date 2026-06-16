@@ -1,3 +1,5 @@
+"""Logging utilities — ANSI-coloured console formatter and rotating-file logger."""
+
 import logging
 from logging.handlers import RotatingFileHandler
 

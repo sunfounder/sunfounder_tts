@@ -1,3 +1,14 @@
+"""Espeak — compact offline TTS engine via the ``espeak`` binary.
+
+Fast, robotic-sounding offline text-to-speech. No network required.
+
+Usage::
+
+    from sunfounder_tts import Espeak
+    tts = Espeak(amp=100, speed=160, pitch=50, lang="zh")
+    tts.say("你好世界")
+"""
+
 from ._utils import is_installed, run_command, check_executable
 from ._audio_player import AudioPlayer
 from ._base import _Base

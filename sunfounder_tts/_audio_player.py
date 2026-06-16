@@ -63,6 +63,25 @@ class AudioPlayer:
         timeout: Optional[float] = None,
         enable_buffering: bool = True,
         buffer_size: int = 8192) -> None:
+        """Initialize the audio player and open an output device.
+
+        Tries PyAudio/ALSA first. Falls back to PulseAudio if no ALSA devices
+        are found or if ``PULSE_SERVER`` is set.
+
+        Args:
+            sample_rate: Audio sample rate in Hz (default 22050).
+            channels: Number of audio channels (1 = mono, 2 = stereo).
+            gain: Volume gain factor (1.0 = original volume).
+            format: PyAudio format constant (defaults to ``paInt16``).
+            timeout: Timeout in seconds for playback operations.
+            enable_buffering: Buffer audio chunks for smoother playback.
+            buffer_size: Minimum buffer size in bytes for buffered playback.
+
+        Raises:
+            ImportError: If PyAudio is not available and PulseAudio fallback
+                         is also unavailable.
+            OSError: If no audio output device can be opened.
+        """
         if format is None:
             format = pyaudio.paInt16 if _pyaudio_available else 8  # paInt16
 
@@ -172,8 +191,11 @@ class AudioPlayer:
         """Open the PyAudio output stream if not already open.
 
         Creates a new output stream with the configured format, channels,
-        and sample rate. Finds a working device automatically.
-        No-op if the stream is already open and running.
+        and sample rate. Finds a working device automatically. No-op if
+        the stream is already open and running.
+
+        Returns:
+            None
         """
         if self._stream is None or self._stream.is_stopped():
             old_stderr = redirect_error_2_null()

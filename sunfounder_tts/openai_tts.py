@@ -1,3 +1,15 @@
+"""OpenAI TTS — cloud TTS via the ``gpt-4o-mini-tts`` model.
+
+Supports 10 voices with optional style instructions. Streams audio
+for lower latency or downloads fully before playback.
+
+Usage::
+
+    from sunfounder_tts import OpenAI_TTS
+    tts = OpenAI_TTS(voice="coral", api_key="sk-...")
+    tts.say("Hello world")
+"""
+
 import requests
 from ._audio_player import AudioPlayer
 from ._base import _Base

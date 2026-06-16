@@ -1,3 +1,4 @@
+"""Internal utilities — command runner, executable checks, stderr suppression context manager."""
 
 def run_command(cmd: str, user: str=None, group: str=None) -> tuple:
     """Run a shell command and return status and output.

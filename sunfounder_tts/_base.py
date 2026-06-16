@@ -1,3 +1,5 @@
+"""Base class for all TTS engines — provides shared logging setup."""
+
 import logging
 from ._logger import Logger
 
