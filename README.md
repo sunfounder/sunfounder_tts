@@ -1,22 +1,14 @@
 # sunfounder_tts
 
-Text-to-Speech brick — synthesizes audio from text and plays it through the system audio device.
+Text-to-Speech brick — synthesizes speech from text and plays it through the system audio device.
 
 ## Engines
 
 | Engine | Quality | Online | Notes |
 |---|---|---|---|
-| **EdgeTTS** (default) | Natural | Yes | Microsoft Edge cloud TTS, **free**, 100+ voices across 50+ languages. Default voice: `zh-CN-XiaoxiaoNeural`. |
-| **Espeak** | Robotic | No | Compact formant synthesizer, zero runtime deps. Supports `-v en-us+f3` for female voice. |
-| **OpenAI_TTS** | Best | Yes | OpenAI cloud TTS. Needs `OPENAI_API_KEY`. Voices: alloy, echo, fable, onyx, nova, shimmer. |
-
-The default engine shortcut is `TTS = EdgeTTS`.
-
-## Dependencies
-
-- **EdgeTTS**: `edge-tts` pip package
-- **Espeak**: `espeak` system package
-- **OpenAI_TTS**: `requests` pip package + internet
+| **EdgeTTS** (default) | Natural | Yes | Microsoft cloud TTS, **free**, 100+ voices across 50+ languages |
+| **Espeak** | Robotic | No | Compact formant synthesizer, zero runtime dependencies |
+| **OpenAI_TTS** | Best | Yes | OpenAI cloud TTS, 6 voices, needs `OPENAI_API_KEY` |
 
 ## Usage
 
@@ -38,7 +30,7 @@ voices = EdgeTTS.available_voices()
 #  'en-US-AriaNeural': 'US female, natural', ...}
 
 tts.set_voice("en-US-JennyNeural")
-tts.set_gain(0.75)  # volume factor (1.0 = original)
+tts.set_gain(0.75)   # volume factor (1.0 = original)
 ```
 
 ### Espeak — compact offline
@@ -64,17 +56,20 @@ tts.set_voice(tts.Voice.ALLOY)
 tts.say("Hello from the cloud")
 ```
 
-## Audio output
+## Audio Output
 
-Playback uses ALSA LineOut (`hw:0,1`) via PyAudio. The Qualcomm Codec mixer is
-configured automatically at container startup
-by `setup_audio_output()` in `python-libraries/robot_shield/audio.py`.
+Playback via ALSA LineOut (`hw:0,1`) using PyAudio. The Qualcomm Codec mixer is configured at container startup by `setup_audio_output()` in `robot_shield`.
 
-EdgeTTS outputs MP3; `AudioPlayer` auto-detects MP3 via magic bytes (`0xFF 0xE0`)
-and converts to WAV via `sox` before playback.
+EdgeTTS outputs MP3; `AudioPlayer` auto-detects MP3 via magic bytes (`0xFF 0xE0`) and converts to WAV via `sox` before playback.
 
-System-wide ALSA config is written to `/etc/asound.conf` at image build time:
+System-wide ALSA config written to `/etc/asound.conf` at image build time:
 ```
 pcm.!default { type plug slave.pcm { type hw card 0 device 1 } }
 ctl.!default { type hw card 0 device 1 }
 ```
+
+## Dependencies
+
+- **EdgeTTS**: `edge-tts` pip package
+- **Espeak**: `espeak` system package
+- **OpenAI_TTS**: `requests` pip package + internet
