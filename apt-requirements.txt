@@ -1,0 +1,9 @@
+# System dependencies for sunfounder_tts
+# Used by Dockerfile at build time: curl this file | xargs apt-get install
+
+# Espeak offline TTS engine
+espeak
+
+# EdgeTTS MP3→WAV conversion
+sox
+libsox-fmt-mp3
