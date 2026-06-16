@@ -153,23 +153,27 @@ class AudioPlayer:
                 self.old_stderr = None
 
     def _find_working_device(self, channels: int, sample_rate: int, audio_format: int) -> int:
-        """Find a working output device.
+        """Find a working output device index.
+
+        Currently delegates to ALSA's default device selection by returning
+        ``None`` (PyAudio uses the system default output).
 
         Args:
-            channels: Number of audio channels
-            sample_rate: Sample rate in Hz
-            audio_format: PyAudio format constant
+            channels: Number of audio channels.
+            sample_rate: Sample rate in Hz.
+            audio_format: PyAudio format constant.
 
         Returns:
-            int: Index of a working output device, or None for default device
+            int or None: Device index, or ``None`` for the system default.
         """
-        # Use default device (None) - let ALSA handle device selection
         return None
 
     def _open_stream(self):
-        """Opens the audio output stream if not already open.
+        """Open the PyAudio output stream if not already open.
 
-        Creates a new PyAudio output stream with the configured parameters.
+        Creates a new output stream with the configured format, channels,
+        and sample rate. Finds a working device automatically.
+        No-op if the stream is already open and running.
         """
         if self._stream is None or self._stream.is_stopped():
             old_stderr = redirect_error_2_null()
@@ -257,7 +261,14 @@ class AudioPlayer:
             return audio_bytes  # Return original if error
 
     def play(self, audio_bytes: bytes) -> None:
-        """Plays audio bytes with minimal buffering for real-time streaming."""
+        """Play raw audio bytes with minimal buffering for real-time streaming.
+
+        Applies gain, then either writes directly (buffering disabled) or
+        buffers until a minimum chunk size is reached before playback.
+
+        Args:
+            audio_bytes: Raw PCM audio data (format matching the stream config).
+        """
         if self._use_pulse:
             self._pulse.play(audio_bytes)
             return
@@ -313,7 +324,11 @@ class AudioPlayer:
                 self._stream.write(play_data)
 
     def flush_buffer(self) -> None:
-        """Plays all remaining audio data in the buffer."""
+        """Play all remaining buffered audio data and clear the buffer.
+
+        Applies gain before writing to the output stream. Should be called
+        after the last ``play()`` to ensure all audio is heard.
+        """
         if self._use_pulse:
             self._pulse.flush()
             return
@@ -353,7 +368,14 @@ class AudioPlayer:
         self._playback_thread.start()
 
     def _is_mp3(self, file_path: str) -> bool:
-        """Check if file is MP3 by reading the magic bytes header."""
+        """Check if a file is MP3 by reading the magic bytes header.
+
+        Args:
+            file_path: Path to the audio file.
+
+        Returns:
+            bool: ``True`` if the file starts with ``0xFF 0xE0`` (MPEG sync).
+        """
         try:
             with open(file_path, 'rb') as f:
                 header = f.read(2)
@@ -362,7 +384,20 @@ class AudioPlayer:
             return False
 
     def play_file(self, file_path: str, chunk_size: int = 4096) -> None:
-        """Plays an audio file. Supports WAV and MP3 (auto-converts MP3 via sox)."""
+        """Play an audio file. Supports WAV and MP3 (auto-converts MP3 via sox).
+
+        MP3 files are converted to WAV in-place (:file:`<name>.wav`) before
+        playback. The original MP3 is preserved.
+
+        Args:
+            file_path: Path to a WAV or MP3 audio file.
+            chunk_size: Frames to read per iteration (default 4096).
+
+        Raises:
+            ValueError: If the WAV file has an unsupported sample width.
+            RuntimeError: If ``sox`` MP3→WAV conversion fails (install
+                          ``libsox-fmt-mp3``).
+        """
         # MP3 -> WAV conversion
         if self._is_mp3(file_path):
             base, _ = os.path.splitext(file_path)
@@ -498,7 +533,11 @@ class AudioPlayer:
         self._playback_thread.start()
 
     def stop(self) -> None:
-        """Stops any ongoing playback and clears the audio buffer."""
+        """Stop any ongoing playback and clear the audio buffer.
+
+        Signals the playback thread via ``_stop_event``, joins it (with
+        *timeout*), and clears ``_audio_buffer``. Safe to call at any time.
+        """
         if self._use_pulse:
             self._pulse.stop()
             return

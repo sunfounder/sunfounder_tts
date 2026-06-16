@@ -5,7 +5,13 @@ from ._logger import Logger
 class _Base:
     """Base class for TTS engines.
 
-    Provides a ``self.log`` Logger instance.
+    Provides a ``self.log`` :class:`Logger` instance for all TTS subclasses.
+
+    Args:
+        log: A pre-configured :class:`logging.Logger`. If ``None`` (default),
+             a new :class:`Logger` is created with *log_level*.
+        log_level: Log level for the auto-created logger, default
+                   :data:`logging.INFO`.
     """
 
     def __init__(self, *args, log: logging.Logger = None,

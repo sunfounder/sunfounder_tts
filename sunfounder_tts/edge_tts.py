@@ -133,11 +133,15 @@ class EdgeTTS(_Base):
     # ---- public API ----
 
     def tts(self, text: str, file_path: str) -> None:
-        """Synthesize text to an audio file.
+        """Synthesize text to an audio file via Microsoft Edge TTS.
 
         Args:
             text: Text to speak.
-            file_path: Output WAV/MP3 file path.
+            file_path: Output audio file path (MP3 format).
+
+        Raises:
+            edge_tts.exceptions.EdgeTTSException: If the Edge TTS API
+                returns an error (e.g. invalid voice, rate-limited).
         """
         self.log.debug(f"edge-tts [{self._voice}]: {text[:80]}")
         loop = asyncio.new_event_loop()

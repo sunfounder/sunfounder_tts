@@ -99,8 +99,10 @@ class PulseAudioPlayer:
     def play(self, data: bytes):
         """Play raw PCM audio data.
 
+        Opens the PulseAudio connection on first call. No-op if *data* is empty.
+
         Args:
-            data: raw audio bytes for playback.
+            data: Raw S16_LE PCM audio bytes for playback.
         """
         if not data:
             return
@@ -108,12 +110,18 @@ class PulseAudioPlayer:
         _LIB.pa_simple_write(self._handle, data, len(data), None)
 
     def flush(self):
-        """Drain all pending audio to the hardware."""
+        """Drain all pending audio to the hardware (blocking).
+
+        Ensures all buffered data has been written before returning.
+        """
         if self._handle:
             _LIB.pa_simple_drain(self._handle, None)
 
     def close(self):
-        """Drain pending audio and close the PulseAudio connection."""
+        """Drain pending audio and close the PulseAudio connection.
+
+        Safe to call multiple times — subsequent calls are no-ops.
+        """
         if self._handle:
             try:
                 _LIB.pa_simple_drain(self._handle, None)
@@ -125,8 +133,11 @@ class PulseAudioPlayer:
     def play_file(self, path: str):
         """Play a WAV audio file via PulseAudio.
 
+        Reads the file in 4096-frame chunks, plays each via :meth:`play`,
+        then drains.
+
         Args:
-            path: path to a WAV file.
+            path: Path to a WAV audio file.
         """
         import wave
         with wave.open(path, "rb") as wf:
@@ -139,7 +150,7 @@ class PulseAudioPlayer:
             self.flush()
 
     def stop(self):
-        """Stop playback by draining any buffered audio."""
+        """Stop playback by draining any buffered audio to hardware."""
         self.flush()
 
     @staticmethod
