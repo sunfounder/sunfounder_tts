@@ -61,16 +61,19 @@ class OpenAI_TTS(_Base):
             self.set_api_key(api_key)
 
     def tts(self, words: str, output_file: str=f"./audio_output/openai_tts.{AUDIO_FORMAT}", instructions: Optional[str]=None, stream: bool=False) -> bool:
-        """ Request OpenAI TTS API.
+        """Request OpenAI TTS API to synthesize speech.
 
         Args:
-            words (str): Words to say.
-            output_file (str, optional): Output file, default is './audio_output/openai_tts.wav'.
-            instructions (str, optional): Instructions, default is None.
-            stream (bool, optional): Whether to stream the audio, default is False.
+            words: Text to synthesize.
+            output_file: Path for the output audio file (WAV format).
+                         Ignored when *stream* is ``True``.
+            instructions: Optional voice style instructions (e.g.
+                          ``"Speak in a cheerful tone."``).
+            stream: If ``True``, play audio chunks as they arrive without
+                    saving to disk.
 
         Returns:
-            bool: True if success, False otherwise.
+            bool: ``True`` on success, ``False`` on request/IO error.
         """
         
         headers = {
@@ -112,12 +115,16 @@ class OpenAI_TTS(_Base):
             return False
 
     def say(self, words: str, instructions: Optional[str]=None, stream: bool=True) -> None:
-        """ Say words.
+        """Synthesize text and play it immediately.
+
+        By default streams audio for lower latency. Set *stream=False*
+        to save the file to disk and play back after download completes.
 
         Args:
-            words (str): Words to say.
-            instructions (str, optional): Instructions, default is None.
-            stream (bool, optional): Whether to stream the audio, default is True.
+            words: Text to speak.
+            instructions: Optional voice style instructions.
+            stream: If ``True`` (default), stream audio in real time.
+                    If ``False``, download fully then play.
         """
         if stream:
             self.tts(words, instructions=instructions, stream=True)
@@ -128,23 +135,29 @@ class OpenAI_TTS(_Base):
                 player.play_file(file_name)
 
     def set_voice(self, voice: [Voice, str]) -> None:
-        """ Set voice.
+        """Set the TTS voice.
 
         Args:
-            voice (Voice | str): Voice.
+            voice: Voice enum member or short name string (e.g. ``"alloy"``).
+
+        Raises:
+            ValueError: If *voice* is not a valid :class:`Voice` value.
         """
         if isinstance(voice, str):
             voice = self.Voice(voice)
         elif not isinstance(voice, self.Voice):
             raise ValueError(f"Invalid voice: {voice}, must be {self.Voice.__name__}")
-        
+
         self._voice = voice
 
     def set_model(self, model: [Model, str]) -> None:
-        """ Set model.
+        """Set the TTS model.
 
         Args:
-            model (Model | str): Model.
+            model: Model enum member or model ID string.
+
+        Raises:
+            ValueError: If *model* is not a valid :class:`Model` value.
         """
         if isinstance(model, str):
             model = self.Model(model)
@@ -153,20 +166,26 @@ class OpenAI_TTS(_Base):
         self._model = model
 
     def set_api_key(self, api_key: str) -> None:
-        """ Set api key.
+        """Set the OpenAI API key.
 
         Args:
-            api_key (str): API key.
+            api_key: OpenAI API key string.
+
+        Raises:
+            ValueError: If *api_key* is not a string.
         """
         if not isinstance(api_key, str):
             raise ValueError(f"Invalid api_key: {api_key}, must be str")
         self._api_key = api_key
 
     def set_gain(self, gain: float) -> None:
-        """ Set gain.
+        """Set volume gain factor.
 
         Args:
-            gain (float): Gain.
+            gain: Volume gain (1.0 = original volume).
+
+        Raises:
+            ValueError: If *gain* is not a float.
         """
         if not isinstance(gain, float):
             raise ValueError(f"Invalid gain: {gain}, must be float")
